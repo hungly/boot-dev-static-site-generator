@@ -41,3 +41,28 @@ class HTMLNode:
         if self.props is None:
             return ""
         return " ".join([f'{key}="{value}"' for key, value in self.props.items()])
+    
+class LeafNode(HTMLNode):
+        """
+        A class representing a leaf node in an HTML document.
+        """
+
+        def __init__(self, tag: str, value: str, props: dict = None):
+            super().__init__(tag, value, None, props)
+
+        def to_html(self) -> str:
+            """
+            Convert the LeafNode to an HTML string.
+
+            :return: The HTML string representation of the node.
+            """
+            if self.value is None:
+                raise ValueError("LeafNode must have a value")
+            elif self.tag is None:
+                return self.value
+            else:
+                props_str = self.props_to_html()
+                if props_str:
+                    return f"<{self.tag} {props_str}>{self.value}</{self.tag}>"
+                else:
+                    return f"<{self.tag}>{self.value}</{self.tag}>"
