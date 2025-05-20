@@ -66,3 +66,29 @@ class LeafNode(HTMLNode):
                     return f"<{self.tag} {props_str}>{self.value}</{self.tag}>"
                 else:
                     return f"<{self.tag}>{self.value}</{self.tag}>"
+                
+class ParentNode(HTMLNode):
+    """
+    A class representing a parent node in an HTML document.
+    """
+
+    def __init__(self, tag: str, children: list, props: dict = None):
+        super().__init__(tag, None, children, props)
+
+    def to_html(self) -> str:
+        """
+        Convert the ParentNode to an HTML string.
+
+        :return: The HTML string representation of the node.
+        """
+        if self.tag is None:
+            raise ValueError("ParentNode must have a tag")
+        elif self.children is None:
+            raise ValueError("ParentNode must have children")
+        else:
+            props_str = self.props_to_html()
+            children_str = "".join([child.to_html() for child in self.children])
+            if props_str:
+                return f"<{self.tag} {props_str}>{children_str}</{self.tag}>"
+            else:
+                return f"<{self.tag}>{children_str}</{self.tag}>"
