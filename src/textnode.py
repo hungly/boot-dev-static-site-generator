@@ -4,7 +4,7 @@ class TextType(Enum):
     """
     Enum for text types.
     """
-    NORMAL = "normal"
+    TEXT = "text"
     BOLD = "bold"
     ITALIC = "italic"
     CODE = "code"
@@ -13,10 +13,10 @@ class TextType(Enum):
 
 class TextNode:
     text = ""
-    type = TextType.NORMAL
+    type = TextType.TEXT
     url = ""
 
-    def __init__(self, text: str, type: TextType = TextType.NORMAL, url: str = ""):
+    def __init__(self, text: str, type: TextType = TextType.TEXT, url: str = ""):
         """
         Initialize a TextNode with text, type, and optional URL.
 
