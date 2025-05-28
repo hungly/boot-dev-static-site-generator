@@ -1,9 +1,11 @@
 from textnode import TextNode, TextType
 from htmlnode import HTMLNode, LeafNode, ParentNode
+from splitnodes import split_nodes_delimiter
 
 def main():
-    node = TextNode("Hello, World!", TextType.BOLD, "http://example.com")
-    print(node)
+    node = TextNode("This is text with a `code block` and an empty part `", TextType.TEXT)
+    new_nodes = split_nodes_delimiter([node], "`", TextType.CODE)
+    print(new_nodes)
     pass
 
 if __name__ == "__main__":
