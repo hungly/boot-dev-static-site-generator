@@ -1,4 +1,5 @@
 from textnode import TextNode, TextType
+from extractmarkkdown import extract_markdown_images, extract_markdown_links
 
 def split_nodes_delimiter(old_nodes, delimiter: str, text_type: TextType):
     """
@@ -75,3 +76,57 @@ def split_node(node: TextNode, delimiter: str, original_text_type: TextType, del
 
     return new_nodes
     
+def split_nodes_link(old_nodes):
+    """
+    Split nodes by links and return a list of TextNode objects.
+    :param old_nodes: List of TextNode objects to split.
+    :return: List of TextNode objects.
+    """
+    new_nodes = []
+
+    for node in old_nodes:
+        text = node.text
+        link_end_pos = 0
+
+        links = extract_markdown_links(text)
+
+        for link in links:
+            link_end_pos = text.find(link[1]) + len(link[1])
+            left_text = text[:text.find(link[0]) - 1]
+            new_nodes.append(TextNode(left_text, node.type))
+            new_nodes.append(TextNode(link[0], TextType.LINK, url=link[1]))
+            text = text[link_end_pos + 1:]
+
+    return new_nodes
+
+def split_nodes_image(old_nodes):
+    """
+    Split nodes by images and return a list of TextNode objects.
+    :param old_nodes: List of TextNode objects to split.
+    :return: List of TextNode objects.
+    """
+    new_nodes = []
+
+    for node in old_nodes:
+        text = node.text
+        images = extract_markdown_images(text)
+
+        if not images:
+            new_nodes.append(node)
+            continue
+
+        for image in images:
+            image_text = image[0]
+            image_url = image[1]
+
+            left_text = text[:text.find(image_text) - 2]
+            if left_text:
+                new_nodes.append(TextNode(left_text, node.type))
+
+            new_nodes.append(TextNode(image_text, TextType.IMAGE, url=image_url))
+            text = text[text.find(image_url) + len(image_url) + 1:]
+
+        if text:
+            new_nodes.append(TextNode(text, node.type))
+
+    return new_nodes
