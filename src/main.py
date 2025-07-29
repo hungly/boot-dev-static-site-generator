@@ -1,17 +1,7 @@
 from textnode import TextNode, TextType
-from htmlnode import HTMLNode, LeafNode
-from blocknode import BlockType, block_to_block_type
-
-def main():
-    text = "```python\nprint('Hello')\n```"
-
-    block_type = block_to_block_type(text)
-    print(block_type)
-
-    pass
-
-if __name__ == "__main__":
-    main()
+from htmlnode import HTMLNode, LeafNode, ParentNode
+from blocknode import BlockType, block_to_block_type, markdown_to_blocks, remove_block_markers
+from splitnodes import text_to_textnodes
 
 def text_node_to_html_node(text_node: TextNode) -> HTMLNode: 
     """
@@ -34,3 +24,62 @@ def text_node_to_html_node(text_node: TextNode) -> HTMLNode:
         return LeafNode("img", None, {"src": text_node.link, "alt": text_node.text})
     else:
         raise ValueError(f"Unknown text type: {text_node.type}")
+    
+def text_to_children(text: str) -> list[HTMLNode]:
+    """
+    Convert a plain text string to a list of HTMLNode objects.
+
+    :param text: The plain text string to convert.
+    :return: List of HTMLNode objects.
+    """
+    
+    nodes = text_to_textnodes(text)
+    return [text_node_to_html_node(node) for node in nodes]
+    
+def markdown_to_html_node(markdown: str) -> HTMLNode:
+    """
+    Convert a markdown string to an HTMLNode.
+
+    :param markdown: The markdown string to convert.
+    :return: An HTMLNode representing the markdown.
+    """
+    
+    nodes = []
+
+    for block in markdown_to_blocks(markdown):
+        block_type = block_to_block_type(block)
+        format_block = remove_block_markers(block, block_type)
+
+        if block_type == BlockType.PARAGRAPH:
+            nodes.append(ParentNode("p", text_to_children(format_block.replace("\n", " ").strip())))
+        elif block_type == BlockType.HEADING:
+            nodes.append(ParentNode("h1", text_to_children(format_block)))
+        elif block_type == BlockType.CODE:
+            nodes.append(LeafNode("pre", text_node_to_html_node(TextNode(format_block, TextType.CODE)).to_html()))
+        elif block_type == BlockType.QUOTE:
+            nodes.append(ParentNode("blockquote", text_to_children(format_block)))
+        elif block_type == BlockType.UNORDERED_LIST:
+            nodes.append(ParentNode("ul", text_to_children(format_block)))
+        elif block_type == BlockType.ORDERED_LIST:
+            nodes.append(ParentNode("ol", text_to_children(format_block)))
+        else:
+            raise ValueError(f"Unknown block type: {block_type}")
+
+    return ParentNode("div", nodes)
+
+def main():
+    md = """
+This is **bolded** paragraph
+text in a p
+tag here
+
+This is another paragraph with _italic_ text and `code` here
+"""
+
+    node = markdown_to_html_node(md)
+    print(node.to_html())
+
+    pass
+
+if __name__ == "__main__":
+    main()

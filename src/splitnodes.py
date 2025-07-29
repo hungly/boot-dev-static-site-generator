@@ -17,18 +17,18 @@ def split_nodes_delimiter(old_nodes, delimiter: str, text_type: TextType):
             new_nodes.append(node)
             continue
 
-        print("=" * 45)
-        print(f"Splitting node:    {node}\nby delimiter:      {delimiter}\nof delimiter type: {text_type}")
+        # print("=" * 45)
+        # print(f"Splitting node:    {node}\nby delimiter:      {delimiter}\nof delimiter type: {text_type}")
 
         nodes = split_node(node, delimiter, node.type, text_type)
 
-        print("=" * 45)
-        print(f"Created {len(new_nodes)} new nodes")
+        # print("=" * 45)
+        # print(f"Created {len(new_nodes)} new nodes")
 
         new_nodes.extend(nodes)
 
-        print("=" * 45)
-        print(f"Total nodes after split: {len(new_nodes)}")
+        # print("=" * 45)
+        # print(f"Total nodes after split: {len(new_nodes)}")
 
     return new_nodes
 
@@ -54,14 +54,14 @@ def split_node(node: TextNode, delimiter: str, original_text_type: TextType, del
     left = node.text[:pos]
     right = node.text[pos + len(delimiter):]
 
-    print("=" * 45)
-    print(f"Left part:  '{left}'")
-    print(f"Right part: '{right}'")
+    # print("=" * 45)
+    # print(f"Left part:  '{left}'")
+    # print(f"Right part: '{right}'")
     
     if left:
         node = TextNode(left, node.type)
         new_nodes.append(node)
-        print(f"Added left part: {node}")
+        # print(f"Added left part: {node}")
 
     right_node = None
 
@@ -73,7 +73,7 @@ def split_node(node: TextNode, delimiter: str, original_text_type: TextType, del
     else:
         return new_nodes
 
-    print(f"Right part as new node: {right_node}")
+    # print(f"Right part as new node: {right_node}")
     nodes = split_node(right_node, delimiter, original_text_type, deli_text_type, not is_delimiter)
 
     new_nodes.extend(nodes)

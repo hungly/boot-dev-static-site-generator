@@ -13,7 +13,7 @@ class BlockType(Enum):
     UNORDERED_LIST = "unordered_list"
     ORDERED_LIST = "ordered_list"
 
-def markdown_to_blocks(markdown):
+def markdown_to_blocks(markdown: str) -> list[str]:
     """
     Converts markdown text into a list of blocks, extracting images and links.
 
@@ -31,7 +31,7 @@ def markdown_to_blocks(markdown):
 
     return blocks
 
-def block_to_block_type(markdown_block):
+def block_to_block_type(markdown_block: str) -> BlockType:
     """
     Determines the type of block based on the markdown content.
 
@@ -53,6 +53,29 @@ def block_to_block_type(markdown_block):
         return BlockType.ORDERED_LIST
     else:
         return BlockType.PARAGRAPH
+    
+def remove_block_markers(markdown_block: str, type: BlockType) -> str:
+    """
+    Removes block markers from a markdown block.
+
+    :param markdown_block: The markdown block to process.
+    :return: The markdown block without block markers.
+    """
+    
+    if type == BlockType.HEADING:
+        return re.sub(r'^(#{1,6})\s', '', markdown_block).strip()
+    elif type == BlockType.CODE:
+        return markdown_block.replace('```\n', '').replace('```', '')
+    elif type == BlockType.QUOTE:
+        return re.sub(r'^> ', '', markdown_block, flags=re.MULTILINE).strip()
+    elif type == BlockType.UNORDERED_LIST:
+        return re.sub(r'^-\s', '', markdown_block, flags=re.MULTILINE).strip()
+    elif type == BlockType.ORDERED_LIST:
+        return re.sub(r'^\d+\.\s', '', markdown_block, flags=re.MULTILINE).strip()
+    else:
+        # For paragraphs, we just return the block as is
+        # but we can also strip leading/trailing whitespace
+        return markdown_block.replace('\n', ' ')
     
 def is_quote_block(markdown_block):
     """
