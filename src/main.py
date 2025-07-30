@@ -2,6 +2,9 @@ from textnode import TextNode, TextType
 from htmlnode import HTMLNode, LeafNode, ParentNode
 from blocknode import BlockType, block_to_block_type, markdown_to_blocks, remove_block_markers
 from splitnodes import text_to_textnodes
+from shutil import rmtree, copy
+from os.path import exists, join, isfile
+from os import makedirs, listdir
 
 def text_node_to_html_node(text_node: TextNode) -> HTMLNode: 
     """
@@ -67,17 +70,29 @@ def markdown_to_html_node(markdown: str) -> HTMLNode:
 
     return ParentNode("div", nodes)
 
+def copy_files(src: str, dest: str):
+    """
+    Copy files from source to destination directory.
+
+    :param src: Source directory.
+    :param dest: Destination directory.
+    """
+    if not exists(dest):
+        makedirs(dest)
+    
+    for item in listdir(src):
+        s = join(src, item)
+        d = join(dest, item)
+        if isfile(s):
+            copy(s, d)
+        else:
+            copy_files(s, d)
+
 def main():
-    md = """
-This is **bolded** paragraph
-text in a p
-tag here
+    if exists("./public"):
+        rmtree("./public")
 
-This is another paragraph with _italic_ text and `code` here
-"""
-
-    node = markdown_to_html_node(md)
-    print(node.to_html())
+    copy_files("./static", "./public")
 
     pass
 
