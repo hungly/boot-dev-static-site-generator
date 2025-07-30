@@ -22,9 +22,9 @@ def text_node_to_html_node(text_node: TextNode) -> HTMLNode:
     elif text_node.type == TextType.CODE:
         return LeafNode("code", text_node.text)
     elif text_node.type == TextType.LINK:
-        return LeafNode("a", text_node.text, {"href": text_node.link})
+        return LeafNode("a", text_node.text, {"href": text_node.url})
     elif text_node.type == TextType.IMAGE:
-        return LeafNode("img", None, {"src": text_node.link, "alt": text_node.text})
+        return LeafNode("img", None, {"src": text_node.url, "alt": text_node.text})
     else:
         raise ValueError(f"Unknown text type: {text_node.type}")
     
@@ -38,6 +38,16 @@ def text_to_children(text: str) -> list[HTMLNode]:
     
     nodes = text_to_textnodes(text)
     return [text_node_to_html_node(node) for node in nodes]
+
+def list_item_wrapper(node: HTMLNode) -> HTMLNode:
+    """
+    Wrap a given HTMLNode in a list item.
+
+    :param node: The HTMLNode to wrap.
+    :return: An HTMLNode wrapped in a list item.
+    """
+    
+    return ParentNode("li", [node]) if isinstance(node, LeafNode) else ParentNode("li", node.children)
     
 def markdown_to_html_node(markdown: str) -> HTMLNode:
     """
@@ -62,9 +72,9 @@ def markdown_to_html_node(markdown: str) -> HTMLNode:
         elif block_type == BlockType.QUOTE:
             nodes.append(ParentNode("blockquote", text_to_children(format_block)))
         elif block_type == BlockType.UNORDERED_LIST:
-            nodes.append(ParentNode("ul", text_to_children(format_block)))
+            nodes.append(ParentNode("ul", [ParentNode('li', text_to_children(item)) for item in format_block.split("\n")]))
         elif block_type == BlockType.ORDERED_LIST:
-            nodes.append(ParentNode("ol", text_to_children(format_block)))
+            nodes.append(ParentNode("ol", [ParentNode('li', text_to_children(item)) for item in format_block.split("\n")]))
         else:
             raise ValueError(f"Unknown block type: {block_type}")
 
@@ -87,12 +97,55 @@ def copy_files(src: str, dest: str):
             copy(s, d)
         else:
             copy_files(s, d)
+            
+def extract_title(markdown: str) -> str:
+    """
+    Extract the title from a markdown string.
+
+    :param markdown: The markdown string to extract the title from.
+    :return: The extracted title.
+    """
+    lines = markdown.splitlines()
+    for line in lines:
+        if line.startswith("# "):
+            return line[2:].strip()
+    return "Untitled Document"
+
+def generate_page(from_path, template_path, dest_path):
+    """
+    Generate a page from a markdown file using a template.
+
+    :param from_path: Path to the markdown file.
+    :param template_path: Path to the HTML template.
+    :param dest_path: Destination path for the generated HTML file.
+    """
+    print(f"Generating page from {from_path} to {dest_path} using template {template_path}")
+    
+    md_content = open(from_path, "r").read()
+    template_file = open(template_path, "r").read()
+    html_content = markdown_to_html_node(md_content).to_html()
+    title = extract_title(md_content)
+    file = template_file.replace("{{ Title }}", title).replace("{{ Content }}", html_content)
+    
+    # print(f"=" * 45)
+    # print(f"Template content:\n{html_content}")
+    
+    # print(f"=" * 45)
+    # print(f"Generated HTML content:\n{file}")
+    
+    directory = dest_path.rsplit('/', 1)[0]
+    if not exists(directory):
+        makedirs(directory)
+    with open(dest_path, "w") as f:
+        f.write(file)
 
 def main():
     if exists("./public"):
         rmtree("./public")
 
     copy_files("./static", "./public")
+    
+    generate_page("./content/index.md", "./template.html", "./public/index.html")
 
     pass
 

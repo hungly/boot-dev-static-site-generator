@@ -57,7 +57,7 @@ class LeafNode(HTMLNode):
             :return: The HTML string representation of the node.
             """
             if self.value is None:
-                raise ValueError("LeafNode must have a value")
+                return ""
             elif self.tag is None:
                 return self.value
             else:

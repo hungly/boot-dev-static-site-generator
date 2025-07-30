@@ -67,7 +67,7 @@ def remove_block_markers(markdown_block: str, type: BlockType) -> str:
     elif type == BlockType.CODE:
         return markdown_block.replace('```\n', '').replace('```', '')
     elif type == BlockType.QUOTE:
-        return re.sub(r'^> ', '', markdown_block, flags=re.MULTILINE).strip()
+        return re.sub(r'^>', '', markdown_block, flags=re.MULTILINE).strip()
     elif type == BlockType.UNORDERED_LIST:
         return re.sub(r'^-\s', '', markdown_block, flags=re.MULTILINE).strip()
     elif type == BlockType.ORDERED_LIST:
@@ -86,7 +86,7 @@ def is_quote_block(markdown_block):
     """
     
     for line in markdown_block.split('\n'):
-        if not line.startswith('> '):
+        if not line.startswith('>'):
             return False
     return True
 
