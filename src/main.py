@@ -3,8 +3,9 @@ from htmlnode import HTMLNode, LeafNode, ParentNode
 from blocknode import BlockType, block_to_block_type, markdown_to_blocks, remove_block_markers
 from splitnodes import text_to_textnodes
 from shutil import rmtree, copy
-from os.path import exists, join, isfile
+from os.path import exists, join, isfile, basename
 from os import makedirs, listdir
+from sys import argv
 
 def text_node_to_html_node(text_node: TextNode) -> HTMLNode: 
     """
@@ -111,7 +112,7 @@ def extract_title(markdown: str) -> str:
             return line[2:].strip()
     return "Untitled Document"
 
-def generate_page(from_path, template_path, dest_path):
+def generate_page(from_path, template_path, dest_path, basepath="/"):
     """
     Generate a page from a markdown file using a template.
 
@@ -126,7 +127,9 @@ def generate_page(from_path, template_path, dest_path):
     html_content = markdown_to_html_node(md_content).to_html()
     title = extract_title(md_content)
     file = template_file.replace("{{ Title }}", title).replace("{{ Content }}", html_content)
-    
+    file = file.replace('href="/', f'href="{basepath}')
+    file = file.replace('src="/', f'src="{basepath}')
+
     # print(f"=" * 45)
     # print(f"Template content:\n{html_content}")
     
@@ -139,7 +142,7 @@ def generate_page(from_path, template_path, dest_path):
     with open(dest_path, "w") as f:
         f.write(file)
         
-def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path, basepath="/"):
     """
     Recursively generate pages from markdown files in a directory.
 
@@ -152,20 +155,23 @@ def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
         item_path = join(dir_path_content, item)
         if isfile(item_path) and item.endswith(".md"):
             dest_path = join(dest_dir_path, item.replace(".md", ".html"))
-            generate_page(item_path, template_path, dest_path)
+            generate_page(item_path, template_path, dest_path, basepath)
         elif not isfile(item_path):
             new_dest_dir = join(dest_dir_path, item)
             if not exists(new_dest_dir):
                 makedirs(new_dest_dir)
-            generate_pages_recursive(item_path, template_path, new_dest_dir)
+            generate_pages_recursive(item_path, template_path, new_dest_dir, basepath)
 
 def main():
-    if exists("./public"):
-        rmtree("./public")
-
-    copy_files("./static", "./public")
+    basepath = argv[1] if len(argv) > 1 else "/"
+    output_path = "./docs"
     
-    generate_pages_recursive("./content", "./template.html", "./public")
+    if exists(output_path):
+        rmtree(output_path)
+
+    copy_files("./static", output_path)
+    
+    generate_pages_recursive("./content", "./template.html", output_path, basepath)
 
     pass
 
