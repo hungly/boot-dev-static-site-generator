@@ -138,6 +138,26 @@ def generate_page(from_path, template_path, dest_path):
         makedirs(directory)
     with open(dest_path, "w") as f:
         f.write(file)
+        
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+    """
+    Recursively generate pages from markdown files in a directory.
+
+    :param dir_path_content: Path to the directory containing markdown files.
+    :param template_path: Path to the HTML template.
+    :param dest_dir_path: Destination directory for the generated HTML files.
+    """
+    
+    for item in listdir(dir_path_content):
+        item_path = join(dir_path_content, item)
+        if isfile(item_path) and item.endswith(".md"):
+            dest_path = join(dest_dir_path, item.replace(".md", ".html"))
+            generate_page(item_path, template_path, dest_path)
+        elif not isfile(item_path):
+            new_dest_dir = join(dest_dir_path, item)
+            if not exists(new_dest_dir):
+                makedirs(new_dest_dir)
+            generate_pages_recursive(item_path, template_path, new_dest_dir)
 
 def main():
     if exists("./public"):
@@ -145,7 +165,7 @@ def main():
 
     copy_files("./static", "./public")
     
-    generate_page("./content/index.md", "./template.html", "./public/index.html")
+    generate_pages_recursive("./content", "./template.html", "./public")
 
     pass
 
